@@ -2,11 +2,31 @@
 // (bare DATABASE_URL leaves sslmode=require; recent pg fails on managed CA).
 import { Pool } from "pg";
 
+// Normalize DATABASE_URL for App Platform managed Postgres:
+// - Strip sslmode/ssl query params (pg treats require/prefer as verify-full)
+// - Explicitly set ssl.rejectUnauthorized=false for DO's self-signed CA
+function normalizeDatabaseUrl(raw) {
+  try {
+    const u = new URL(raw);
+    u.searchParams.delete('sslmode');
+    u.searchParams.delete('ssl');
+    return u.toString();
+  } catch {
+    // Fallback for non-URL parsers
+    return String(raw)
+      .replace(/([?&])sslmode=[^&]*/gi, '$1')
+      .replace(/([?&])ssl=[^&]*/gi, '$1')
+      .replace(/[?&]$/, '')
+      .replace(/\?&/, '?');
+  }
+}
+
 export function makePool() {
   const { DATABASE_URL } = process.env;
   if (!DATABASE_URL) throw new Error("DATABASE_URL is required");
   return new Pool({
-    connectionString: DATABASE_URL,
+    connectionString: normalizeDatabaseUrl(DATABASE_URL),
+    ssl: { rejectUnauthorized: false },
   });
 }
 
