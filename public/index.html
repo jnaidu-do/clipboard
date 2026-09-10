@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Clipboard</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Clipboard</h1>
+    </header>
+    <main>
+      <section class="create">
+        <h2>New Clip</h2>
+        <form id="create-form">
+          <input type="text" id="title" placeholder="Title" required />
+          <textarea id="body" placeholder="Your note..." required></textarea>
+          <input type="text" id="tags" placeholder="Tags (comma-separated, optional)" />
+          <button type="submit">Save</button>
+        </form>
+      </section>
+      <section class="filter">
+        <label for="filter-tag">Filter by tag:</label>
+        <select id="filter-tag">
+          <option value="">All</option>
+        </select>
+      </section>
+      <section>
+        <ul id="list" class="clips"></ul>
+      </section>
+    </main>
+    <template id="clip-item">
+      <li class="clip">
+        <div class="meta">
+          <strong class="title"></strong>
+          <span class="tags"></span>
+        </div>
+        <pre class="body"></pre>
+        <div class="actions">
+          <button class="edit">Edit</button>
+          <button class="delete">Delete</button>
+        </div>
+      </li>
+    </template>
+    <script src="/app.js" type="module"></script>
+  </body>
+  </html>
