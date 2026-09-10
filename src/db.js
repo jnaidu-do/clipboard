@@ -2,11 +2,31 @@
 // (bare DATABASE_URL leaves sslmode=require; recent pg fails on managed CA).
 import { Pool } from "pg";
 
+// Normalize DATABASE_URL for DigitalOcean managed Postgres:
+// - Strip sslmode / ssl from the URL (pg treats `require` as verify-full)
+// - Still set ssl.rejectUnauthorized=false on the client
+function normalizeDatabaseUrl(raw) {
+  try {
+    const u = new URL(raw);
+    u.searchParams.delete('sslmode');
+    u.searchParams.delete('ssl');
+    return u.toString();
+  } catch {
+    return String(raw)
+      .replace(/([?&])sslmode=[^&]*/gi, '$1')
+      .replace(/([?&])ssl=[^&]*/gi, '$1')
+      .replace(/[?&]$/, '')
+      .replace(/\?&/, '?');
+  }
+}
+
 export function makePool() {
   const { DATABASE_URL } = process.env;
   if (!DATABASE_URL) throw new Error("DATABASE_URL is required");
   return new Pool({
-    connectionString: DATABASE_URL,
+    // Strip sslmode/ssl from URL and disable CA verification for demo/dev
+    connectionString: normalizeDatabaseUrl(DATABASE_URL),
+    ssl: { rejectUnauthorized: false },
   });
 }
 
